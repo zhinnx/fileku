@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>File to Link Uploader</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 20px;
+      text-align: center;
+      background: #f0f2f5;
+      border-radius: 10px;
+    }
+
+    input[type="file"] {
+      margin-bottom: 12px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #result {
+      margin-top: 20px;
+      word-break: break-all;
+    }
+
+    a {
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>📤 Upload File ke GitHub</h1>
+  <input type="file" id="fileInput"><br>
+  <button onclick="upload()">Upload</button>
+  <div id="result"></div>
+
+  <script>
+    async function upload() {
+      const fileInput = document.getElementById('fileInput');
+      const resultDiv = document.getElementById('result');
+      if (!fileInput.files.length) {
+        return alert('Pilih file terlebih dahulu!');
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async () => {
+        resultDiv.innerHTML = "⏳ Mengupload...";
+        try {
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              file: reader.result,
+              fileName: file.name
+            })
+          });
+
+          const data = await response.json();
+          if (data.url) {
+            resultDiv.innerHTML = `✅ File berhasil diupload:<br><a href="${data.url}" target="_blank">${data.url}</a>`;
+          } else {
+            resultDiv.innerHTML = `❌ Gagal upload: ${data.error}`;
+          }
+        } catch (err) {
+          resultDiv.innerHTML = `❌ Terjadi error: ${err.message}`;
+        }
+      };
+
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
